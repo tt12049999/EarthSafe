@@ -1,0 +1,25 @@
+# Data & ML
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.4
+xgboost>=2.0
+imbalanced-learn>=0.12
+
+# API
+flask>=3.0
+flask-cors>=4.0
+gunicorn>=21.0
+
+# App
+streamlit>=1.35
+plotly>=5.20
+folium>=0.16
+streamlit-folium>=0.20
+requests>=2.31
+
+# Dev
+jupyter>=1.0
+matplotlib>=3.8
+seaborn>=0.13
+pytest>=8.0
+python-dotenv>=1.0
