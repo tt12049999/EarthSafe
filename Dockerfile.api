@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY models/ ./models/
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8080
+
+# Cloud Run injects PORT env var; default to 8080
+CMD ["sh", "-c", "python -c \"import sys; sys.path.insert(0,'src/api'); from app import app; app.run(host='0.0.0.0', port=int(__import__('os').environ.get('PORT',8080)))\""]
