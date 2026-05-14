@@ -62,10 +62,10 @@ const makeShadow = () => ({ type: "outer", blur: 8, offset: 2, angle: 135, color
 
   // Link placeholders
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 1.8, y: 4.6, w: 2.8, h: 0.5, fill: { color: C.teal }, line: { color: C.teal }, rectRadius: 0.08 });
-  s.addText("🔗  App: [link after deploy]", { x: 1.8, y: 4.6, w: 2.8, h: 0.5, fontSize: 11, color: C.white, align: "center", valign: "middle", margin: 0 });
+  s.addText("🔗  earthsafe-eu9o2sytymwqnls48ppjg7.streamlit.app", { x: 1.8, y: 4.6, w: 2.8, h: 0.5, fontSize: 9.5, color: C.white, align: "center", valign: "middle", margin: 0 });
 
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 5.4, y: 4.6, w: 2.8, h: 0.5, fill: { color: C.amber }, line: { color: C.amber }, rectRadius: 0.08 });
-  s.addText("⚙️  API: [link after deploy]", { x: 5.4, y: 4.6, w: 2.8, h: 0.5, fontSize: 11, color: C.white, align: "center", valign: "middle", margin: 0 });
+  s.addText("⚙️  API: Flask · POST /predict  (local / Cloud Run)", { x: 5.4, y: 4.6, w: 2.8, h: 0.5, fontSize: 9.5, color: C.white, align: "center", valign: "middle", margin: 0 });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
