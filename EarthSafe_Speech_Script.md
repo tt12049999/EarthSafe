@@ -134,7 +134,7 @@ The most interesting extension would be adding temporal features — aftershock 
 
 ## Closing (15 seconds)
 
-The app and API are both live at the links on the title slide.
+The app is live at **earthsafe-eu9o2sytymwqnls48ppjg7.streamlit.app** — the link is on the title slide.
 The full code is on GitHub. Thank you — happy to take questions.
 
 ---
