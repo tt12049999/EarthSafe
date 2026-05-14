@@ -17,10 +17,10 @@ data/raw/*.json
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Model artifacts
-models/*.pkl
-models/*.json
-models/*.ubj
+# Model artifacts (included for deployment)
+# models/*.pkl
+# models/*.json
+# models/*.ubj
 
 # OS
 .DS_Store
