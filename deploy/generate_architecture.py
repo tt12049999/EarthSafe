@@ -1,101 +1,152 @@
-"""Generate EarthSafe architecture diagram."""
+"""Generate EarthSafe architecture diagram — 2-row layout, large text."""
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch
 from pathlib import Path
 
 OUTPUT = Path(__file__).parents[1] / "data" / "processed" / "fig_architecture.png"
 
-# ── Color palette ─────────────────────────────────────────────────────────────
-C_DATA   = "#3498db"   # blue
-C_MODEL  = "#9b59b6"   # purple
-C_API    = "#e67e22"   # orange
-C_APP    = "#27ae60"   # green
-C_DEPLOY = "#e74c3c"   # red
-C_BG     = "#FFFFFF"   # white background
-C_CARD   = "#F0F7FF"   # light card
-C_TEXT   = "#1A1A2A"   # dark text
-C_ARROW  = "#4A6274"   # medium gray
+# ── Colors ────────────────────────────────────────────────────────────────────
+BG      = "#FFFFFF"
+C_DATA  = "#2980B9"   # blue
+C_MODEL = "#8E44AD"   # purple
+C_API   = "#D35400"   # orange
+C_APP   = "#1E8449"   # green
+C_CLOUD = "#C0392B"   # red
+C_ARROW = "#2C3E50"   # dark arrow
+C_LABEL = "#2C3E50"   # dark label text
+C_SUB   = "#5D6D7E"   # subtitle under box
 
-def box(ax, x, y, w, h, label, sublabel, color, fontsize=10):
-    rect = FancyBboxPatch((x - w/2, y - h/2), w, h,
-                          boxstyle="round,pad=0.04",
-                          facecolor=color, edgecolor="white",
-                          linewidth=1.5, alpha=0.9, zorder=3)
+BOX_W = 2.6
+BOX_H = 1.1
+FONT_TITLE  = 14
+FONT_SUB    = 11
+FONT_STEP   = 12
+FONT_ARROW  = 11
+
+
+def box(ax, x, y, title, sub, color):
+    rect = FancyBboxPatch(
+        (x - BOX_W / 2, y - BOX_H / 2), BOX_W, BOX_H,
+        boxstyle="round,pad=0.06",
+        facecolor=color, edgecolor="white", linewidth=2, alpha=0.93, zorder=3,
+    )
     ax.add_patch(rect)
-    ax.text(x, y + 0.04, label, ha="center", va="center",
-            fontsize=fontsize, fontweight="bold", color="white", zorder=4)
-    if sublabel:
-        ax.text(x, y - 0.09, sublabel, ha="center", va="center",
-                fontsize=7.5, color="white", alpha=0.8, zorder=4)
+    ax.text(x, y + 0.18, title,
+            ha="center", va="center",
+            fontsize=FONT_TITLE, fontweight="bold", color="white", zorder=4)
+    ax.text(x, y - 0.24, sub,
+            ha="center", va="center",
+            fontsize=FONT_SUB, color="white", alpha=0.92, zorder=4)
 
-def arrow(ax, x1, x2, y, label=""):
-    ax.annotate("", xy=(x2, y), xytext=(x1, y),
+
+def h_arrow(ax, x1, x2, y, label=""):
+    """Horizontal arrow with label above."""
+    ax.annotate("", xy=(x2 - BOX_W / 2 - 0.05, y),
+                xytext=(x1 + BOX_W / 2 + 0.05, y),
                 arrowprops=dict(arrowstyle="-|>", color=C_ARROW,
-                                lw=1.8, mutation_scale=14), zorder=2)
+                                lw=2.0, mutation_scale=16), zorder=2)
     if label:
-        ax.text((x1+x2)/2, y + 0.22, label, ha="center", va="bottom",
-                fontsize=7, color=C_ARROW)
+        mx = (x1 + x2) / 2
+        ax.text(mx, y + 0.28, label,
+                ha="center", va="bottom",
+                fontsize=FONT_ARROW, color=C_LABEL, fontweight="bold")
 
-fig, ax = plt.subplots(figsize=(14, 4.2))
-fig.patch.set_facecolor(C_BG)
-ax.set_facecolor(C_BG)
-ax.set_xlim(0, 14)
-ax.set_ylim(0, 5)
+
+def v_arrow(ax, x, y1, y2, label=""):
+    """Vertical (down) arrow."""
+    ax.annotate("", xy=(x, y2 + BOX_H / 2 + 0.05),
+                xytext=(x, y1 - BOX_H / 2 - 0.05),
+                arrowprops=dict(arrowstyle="-|>", color=C_ARROW,
+                                lw=2.0, mutation_scale=16), zorder=2)
+    if label:
+        ax.text(x + 0.22, (y1 + y2) / 2, label,
+                ha="left", va="center",
+                fontsize=FONT_ARROW, color=C_LABEL, fontweight="bold")
+
+
+# ── Layout: 2 rows ────────────────────────────────────────────────────────────
+#  Row 1 (top):   USGS API → Data Layer → XGBoost
+#  Row 2 (bottom): Flask API → Streamlit → Cloud Run
+#  Vertical arrow: XGBoost → Flask API
+
+fig, ax = plt.subplots(figsize=(13, 6.5))
+fig.patch.set_facecolor(BG)
+ax.set_facecolor(BG)
+ax.set_xlim(0, 13)
+ax.set_ylim(0, 6.5)
 ax.axis("off")
 
 # Title
-ax.text(7, 4.6, "EarthSafe — System Architecture",
-        ha="center", va="center", fontsize=15, fontweight="bold", color="#1A5276")
+ax.text(6.5, 6.1, "EarthSafe — System Architecture",
+        ha="center", va="center",
+        fontsize=18, fontweight="bold", color="#1A5276")
 
-# Row y
-Y = 2.5
+# ── Row positions ─────────────────────────────────────────────────────────────
+Y1 = 4.2   # top row
+Y2 = 2.0   # bottom row
 
-# ── Nodes ─────────────────────────────────────────────────────────────────────
-box(ax, 1.2, Y, 1.8, 0.75, "USGS API",    "Earthquake data\n(M≥2.5)",      C_DATA)
-box(ax, 3.3, Y, 1.8, 0.75, "Data Layer",  "collect.py\npreprocess.py",     C_DATA)
-box(ax, 5.4, Y, 1.8, 0.75, "XGBoost",     "train.py\nLow/Mod/High",        C_MODEL)
-box(ax, 7.5, Y, 1.8, 0.75, "Flask API",   "POST /predict\nGET /recent",    C_API)
-box(ax, 9.6, Y, 1.8, 0.75, "Streamlit",   "Sliders · Map\nLive prediction", C_APP)
-box(ax, 11.7,Y, 1.8, 0.75, "Cloud Run",   "Flask + Streamlit\nDocker",      C_DEPLOY)
+# Row 1 x-positions (3 boxes spaced evenly across ~11 units)
+X1 = [2.2, 6.5, 10.8]
+# Row 2 x-positions (3 boxes, same spacing)
+X2 = [2.2, 6.5, 10.8]
 
-# ── Arrows ────────────────────────────────────────────────────────────────────
-arrow(ax, 2.1,  2.4,  Y, "2,000 records")
-arrow(ax, 4.2,  4.5,  Y, "features")
-arrow(ax, 6.3,  6.6,  Y, "model.pkl")
-arrow(ax, 8.4,  8.7,  Y, "JSON")
-arrow(ax, 10.5, 10.8, Y, "deploy")
+# ── Row 1 boxes ───────────────────────────────────────────────────────────────
+box(ax, X1[0], Y1, "USGS API",    "Earthquake data  M≥2.5", C_DATA)
+box(ax, X1[1], Y1, "Data Layer",  "collect.py · preprocess.py",  C_DATA)
+box(ax, X1[2], Y1, "XGBoost",     "train.py · Low / Mod / High",  C_MODEL)
 
-# ── Bottom labels ─────────────────────────────────────────────────────────────
-stages = [
-    (1.2,  "① Ingest"),
-    (3.3,  "② Process"),
-    (5.4,  "③ Train"),
-    (7.5,  "④ Serve"),
-    (9.6,  "⑤ Visualize"),
-    (11.7, "⑥ Deploy"),
+# ── Row 2 boxes ───────────────────────────────────────────────────────────────
+box(ax, X2[0], Y2, "Flask API",   "POST /predict · GET /recent",  C_API)
+box(ax, X2[1], Y2, "Streamlit",   "Sliders · Map · Live predict",  C_APP)
+box(ax, X2[2], Y2, "Cloud Run",   "Docker · Serverless · GCP",   C_CLOUD)
+
+# ── Row 1 arrows ──────────────────────────────────────────────────────────────
+h_arrow(ax, X1[0], X1[1], Y1, "2,000 records")
+h_arrow(ax, X1[1], X1[2], Y1, "features")
+
+# ── XGBoost → Flask API (L-shape: down then left) ────────────────────────────
+# Segment 1: vertical line from XGBoost bottom to mid-row Y
+mid_y = (Y1 + Y2) / 2
+ax.plot([X1[2], X1[2]], [Y1 - BOX_H / 2 - 0.05, mid_y],
+        color=C_ARROW, lw=2.0, zorder=2)
+# Segment 2: horizontal arrow from X1[2] → X2[0] at mid_y
+ax.annotate("",
+    xy=(X2[0] + BOX_W / 2 + 0.05, mid_y),
+    xytext=(X1[2], mid_y),
+    arrowprops=dict(arrowstyle="-", color=C_ARROW, lw=2.0), zorder=2)
+# Segment 3: vertical arrow from mid_y down to Flask API top
+ax.annotate("",
+    xy=(X2[0], Y2 + BOX_H / 2 + 0.05),
+    xytext=(X2[0], mid_y),
+    arrowprops=dict(arrowstyle="-|>", color=C_ARROW,
+                    lw=2.0, mutation_scale=16), zorder=2)
+# Label
+ax.text(X1[2] + 0.15, (Y1 + mid_y) / 2, "model.pkl",
+        ha="left", va="center",
+        fontsize=FONT_ARROW, color=C_LABEL, fontweight="bold")
+
+# ── Row 2 arrows ──────────────────────────────────────────────────────────────
+h_arrow(ax, X2[0], X2[1], Y2, "JSON prediction")
+h_arrow(ax, X2[1], X2[2], Y2, "Docker image")
+
+# ── Step labels ───────────────────────────────────────────────────────────────
+steps = [
+    (X1[0], Y1 - BOX_H / 2 - 0.3, "① Ingest"),
+    (X1[1], Y1 - BOX_H / 2 - 0.3, "② Process"),
+    (X1[2], Y1 - BOX_H / 2 - 0.3, "③ Train"),
+    (X2[0], Y2 - BOX_H / 2 - 0.3, "④ Serve"),
+    (X2[1], Y2 - BOX_H / 2 - 0.3, "⑤ Visualize"),
+    (X2[2], Y2 - BOX_H / 2 - 0.3, "⑥ Deploy"),
 ]
-for x, lbl in stages:
-    ax.text(x, 1.85, lbl, ha="center", va="center",
-            fontsize=8.5, color=C_ARROW, style="italic")
+for sx, sy, lbl in steps:
+    ax.text(sx, sy, lbl, ha="center", va="center",
+            fontsize=FONT_STEP, color=C_LABEL,
+            style="italic", fontweight="bold")
 
-# ── Tech tags ──────────────────────────────────────────────────────────────────
-tags = [
-    (1.2,  3.1,  "requests"),
-    (3.3,  3.1,  "pandas · sklearn"),
-    (5.4,  3.1,  "XGBoost"),
-    (7.5,  3.1,  "Flask · Flask-CORS"),
-    (9.6,  3.1,  "Streamlit · Plotly"),
-    (11.7, 3.1,  "Docker · GCP"),
-]
-for x, y, tag in tags:
-    ax.text(x, y, tag, ha="center", va="center",
-            fontsize=7, color=C_TEXT, alpha=0.6,
-            bbox=dict(facecolor=C_CARD, edgecolor="none", boxstyle="round,pad=0.2"))
-
-plt.tight_layout()
+plt.tight_layout(pad=0.3)
 OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-plt.savefig(OUTPUT, dpi=150, bbox_inches="tight", facecolor=C_BG)
+plt.savefig(OUTPUT, dpi=150, bbox_inches="tight", facecolor=BG)
 print(f"Saved → {OUTPUT}")
 plt.show()
