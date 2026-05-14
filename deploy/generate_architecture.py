@@ -106,26 +106,13 @@ box(ax, X2[2], Y2, "Cloud Run",   "Docker · Serverless · GCP",   C_CLOUD)
 h_arrow(ax, X1[0], X1[1], Y1, "2,000 records")
 h_arrow(ax, X1[1], X1[2], Y1, "features")
 
-# ── XGBoost → Flask API (L-shape: down then left) ────────────────────────────
-# Segment 1: vertical line from XGBoost bottom to mid-row Y
-mid_y = (Y1 + Y2) / 2
-ax.plot([X1[2], X1[2]], [Y1 - BOX_H / 2 - 0.05, mid_y],
-        color=C_ARROW, lw=2.0, zorder=2)
-# Segment 2: horizontal arrow from X1[2] → X2[0] at mid_y
+# ── XGBoost → Flask API (diagonal) ───────────────────────────────────────────
 ax.annotate("",
-    xy=(X2[0] + BOX_W / 2 + 0.05, mid_y),
-    xytext=(X1[2], mid_y),
-    arrowprops=dict(arrowstyle="-", color=C_ARROW, lw=2.0), zorder=2)
-# Segment 3: vertical arrow from mid_y down to Flask API top
-ax.annotate("",
-    xy=(X2[0], Y2 + BOX_H / 2 + 0.05),
-    xytext=(X2[0], mid_y),
+    xy=(X2[0] + BOX_W / 2 + 0.05, Y2),
+    xytext=(X1[2] - BOX_W / 2 - 0.05, Y1),
     arrowprops=dict(arrowstyle="-|>", color=C_ARROW,
                     lw=2.0, mutation_scale=16), zorder=2)
-# Label
-ax.text(X1[2] + 0.15, (Y1 + mid_y) / 2, "model.pkl",
-        ha="left", va="center",
-        fontsize=FONT_ARROW, color=C_LABEL, fontweight="bold")
+mid_y = (Y1 + Y2) / 2
 
 # ── Row 2 arrows ──────────────────────────────────────────────────────────────
 h_arrow(ax, X2[0], X2[1], Y2, "JSON prediction")
