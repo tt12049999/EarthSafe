@@ -13,10 +13,10 @@ C_MODEL  = "#9b59b6"   # purple
 C_API    = "#e67e22"   # orange
 C_APP    = "#27ae60"   # green
 C_DEPLOY = "#e74c3c"   # red
-C_BG     = "#1a1a2e"
-C_CARD   = "#16213e"
-C_TEXT   = "#ecf0f1"
-C_ARROW  = "#7f8c8d"
+C_BG     = "#FFFFFF"   # white background
+C_CARD   = "#F0F7FF"   # light card
+C_TEXT   = "#1A1A2A"   # dark text
+C_ARROW  = "#4A6274"   # medium gray
 
 def box(ax, x, y, w, h, label, sublabel, color, fontsize=10):
     rect = FancyBboxPatch((x - w/2, y - h/2), w, h,
@@ -38,7 +38,7 @@ def arrow(ax, x1, x2, y, label=""):
         ax.text((x1+x2)/2, y + 0.22, label, ha="center", va="bottom",
                 fontsize=7, color=C_ARROW)
 
-fig, ax = plt.subplots(figsize=(14, 5))
+fig, ax = plt.subplots(figsize=(14, 4.2))
 fig.patch.set_facecolor(C_BG)
 ax.set_facecolor(C_BG)
 ax.set_xlim(0, 14)
@@ -47,7 +47,7 @@ ax.axis("off")
 
 # Title
 ax.text(7, 4.6, "EarthSafe — System Architecture",
-        ha="center", va="center", fontsize=15, fontweight="bold", color=C_TEXT)
+        ha="center", va="center", fontsize=15, fontweight="bold", color="#1A5276")
 
 # Row y
 Y = 2.5
