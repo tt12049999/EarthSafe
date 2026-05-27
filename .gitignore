@@ -25,6 +25,14 @@ data/raw/*.json
 # OS
 .DS_Store
 Thumbs.db
+.Rhistory
+
+# Cache
+.pytest_cache/
+
+# Node
+node_modules/
+package-lock.json
 
 # IDE
 .vscode/
