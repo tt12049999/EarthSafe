@@ -478,35 +478,37 @@ function addHeader(s, title) {
   s.background = { color: C.white };
   addHeader(s, "Challenges, Learnings & Future Work");
 
+  // B+A: 3 items per column (B) + keyword-style short text (A)
   const cols = [
     {
       icon: "⚡", title: "Challenges", color: C.high, bg: "FDEDEC", borderBg: "F5B7B1",
       items: [
-        "Severe class imbalance — only 7 High-hazard events in 2,000 records",
-        "macOS port 5000 blocked by AirPlay — migrated Flask API to port 5001",
-        "XGBoost requires brew install libomp on macOS for OpenMP support",
-        "USGS 20k/request limit — solved with monthly chunk fetching",
+        "Class imbalance — 7 High events / 2,000 records",
+        "Port 5000 blocked → Flask moved to 5001",
+        "XGBoost on Mac — brew install libomp",
       ],
     },
     {
       icon: "💡", title: "Learnings", color: C.teal, bg: "E0F5F2", borderBg: "A2D9CE",
       items: [
-        "Full MLOps pipeline in one project: collect → train → API → UI → cloud",
-        "Macro F1 is the right metric for imbalanced multiclass, not accuracy",
-        "Docker health checks + depends_on for reliable multi-service startup",
-        "XGBoost sample_weight more robust than class_weight for rare classes",
+        "Full MLOps: data → model → API → UI → cloud",
+        "Macro F1 > accuracy on imbalanced data",
+        "Claude AI: code, debug & deploy at every layer",
       ],
     },
     {
       icon: "🚀", title: "Future Work", color: C.blue, bg: C.card, borderBg: C.border,
       items: [
-        "Add temporal features — aftershock sequences, time since last event",
-        "USGS WebSocket feed for sub-second real-time map updates",
-        "Expand to regression: predict magnitude from early seismic signals",
-        "Geospatial clustering — fault line proximity as an engineered feature",
+        "Temporal features — aftershock sequences",
+        "USGS WebSocket — sub-second map updates",
+        "Magnitude regression — early warning",
       ],
     },
   ];
+
+  const CARD_H = 1.12;   // taller cards (3 items, more breathing room)
+  const CARD_GAP = 0.08;
+  const CARD_STEP = CARD_H + CARD_GAP;
 
   cols.forEach((col, i) => {
     const cx = 0.28 + i * 3.24;
@@ -522,20 +524,20 @@ function addHeader(s, title) {
       color: C.white, align: "center", valign: "middle", margin: 0,
     });
 
-    // Items
+    // Items (3 per column, bigger cards, bigger font)
     col.items.forEach((item, j) => {
-      const iy = 1.66 + j * 0.88;
+      const iy = 1.66 + j * CARD_STEP;
       s.addShape(pres.shapes.RECTANGLE, {
-        x: cx, y: iy, w: 3.08, h: 0.78,
+        x: cx, y: iy, w: 3.08, h: CARD_H,
         fill: { color: col.bg }, line: { color: col.borderBg }, shadow: makeShadow(),
       });
       s.addShape(pres.shapes.RECTANGLE, {
-        x: cx, y: iy, w: 0.1, h: 0.78,
+        x: cx, y: iy, w: 0.1, h: CARD_H,
         fill: { color: col.color }, line: { color: col.color },
       });
       s.addText(item, {
-        x: cx + 0.18, y: iy + 0.06, w: 2.8, h: 0.66,
-        fontSize: 12, fontFace: "Calibri", color: C.text, valign: "middle",
+        x: cx + 0.18, y: iy + 0.08, w: 2.8, h: CARD_H - 0.16,
+        fontSize: 14, fontFace: "Calibri", color: C.text, valign: "middle",
       });
     });
   });

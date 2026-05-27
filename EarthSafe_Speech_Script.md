@@ -112,23 +112,37 @@ The Flask API is also running here — a quick demo:
 
 ---
 
-## Slide 7 — Challenges, Learnings & Future Work (1.5 minutes)
+## Slide 7 — Challenges, Learnings & Future Work (2 minutes)
 
-A few things I want to highlight from this experience.
+Let me close with a few honest reflections on what was hard, what I learned, and where this could go next.
 
 **Challenges:**
 
-The biggest one was the class imbalance. 7 High records out of 2,000 is less than 0.4%. Standard accuracy would have been meaningless — a model that always predicts "Low" gets 51.6% accuracy and looks fine. That's why I used Macro F1 as my primary metric and weighted the loss function.
+The hardest problem was class imbalance — and it's not obvious until you look closely. I had 7 High-hazard events out of 2,000 total records. That's less than 0.4%. If I had trained a naive model that just always predicted "Low", it would still achieve 51.6% accuracy. That number looks reasonable on the surface, but the model would be completely useless for the one case that actually matters — predicting a major earthquake.
 
-I also ran into a macOS-specific issue: port 5000 is blocked by AirPlay Receiver. Had to migrate the Flask API to port 5001. And XGBoost requires the OpenMP library on Mac — `brew install libomp` fixed it.
+That's why I threw out accuracy as a metric entirely and used Macro F1, which weights all three classes equally regardless of how often they appear. And to actually teach the model to care about High-hazard events, I used `compute_sample_weight("balanced")`, which artificially inflates the penalty for mislabeling rare classes during training.
+
+I also hit two very practical issues. On macOS, port 5000 is silently blocked by the AirPlay Receiver — the Flask server would start without errors but nothing could connect. Moving to port 5001 fixed it. And XGBoost needs the OpenMP library to run on Mac — a quick `brew install libomp` resolved that one, but it took a while to diagnose.
+
+**AI Assistant:**
+
+I used Claude throughout every layer of this project — writing the data collection script, debugging the XGBoost training loop, structuring the Flask API, and building the Streamlit frontend. It was most valuable for the parts I find tedious: boilerplate like Docker setup, CORS configuration, and API validation. It also helped me think through trade-offs I might have glossed over, like why `sample_weight` is more robust than `class_weight` for tree-based models with rare events.
+
+That said, it's not a replacement for domain knowledge. The class imbalance problem — deciding that Macro F1 is the right metric and not accuracy — was something I had to reason through myself. Claude generates code that works syntactically but you still need to catch the conceptual mistakes.
 
 **Learnings:**
 
-This project gave me end-to-end MLOps experience in a single codebase — from API data collection through model training, REST API serving, interactive frontend, and cloud deployment. Flask-CORS and Streamlit's `cache_data` decorator kept the frontend and backend cleanly separated.
+The biggest takeaway for me is what it actually means to build end-to-end. I'd done pieces before — trained models, written APIs — but having every layer in one codebase, from the USGS data fetch all the way through Docker deployment, forced me to think about how each piece hands off to the next. Where does the model file live? How does the frontend know the API is healthy? How do you keep the frontend and backend decoupled but still in sync?
 
-**Future work:**
+Streamlit's `@st.cache_data` decorator was particularly useful — it caches the USGS live feed for 5 minutes so the map doesn't hammer the API on every user interaction.
 
-The most interesting extension would be adding temporal features — aftershock sequences, time since the last event in the same region. That could catch patterns the current model misses. I'd also like to explore a regression version: predict the magnitude itself from early seismic signal features, which has real early-warning applications.
+The metric lesson also stuck with me: for any real-world classification problem with uneven class distribution, Macro F1 is almost always a better north star than accuracy.
+
+**Future Work:**
+
+The extension I'm most excited about is adding temporal features. Right now, each earthquake is treated as an independent event. But in reality, seismic activity has memory — a major quake is often followed by aftershocks, and regions show elevated risk for days or weeks. Incorporating time-since-last-event and aftershock sequence features could meaningfully improve predictions.
+
+I'd also like to move toward a regression formulation — instead of classifying hazard level, predict the magnitude directly from early seismic signal features like P-wave amplitude and arrival time. That's the basis of real early-warning systems, and it would give this project genuine public safety applications.
 
 ---
 
@@ -148,6 +162,6 @@ The full code is on GitHub. Thank you — happy to take questions.
 | 4 Models | 2:30 |
 | 5 Architecture | 1:30 |
 | 6 Demo | 2:00 |
-| 7 Challenges | 1:30 |
+| 7 Challenges | 2:00 |
 | Closing | 0:15 |
-| **Total** | **~11:45** |
+| **Total** | **~12:15** |

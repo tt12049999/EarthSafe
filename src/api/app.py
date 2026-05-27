@@ -15,6 +15,7 @@ Example predict request:
          -d '{"magnitude": 5.2, "depth": 30, "gap": 120, "rms": 0.5, "location_type": 1}'
 """
 
+import logging
 import joblib
 import requests
 import numpy as np
@@ -24,6 +25,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 MODEL_DIR = Path(__file__).parents[2] / "models"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
@@ -66,7 +74,7 @@ def predict():
     class_idx = int(np.argmax(proba))
     label = _le.inverse_transform([class_idx])[0]
 
-    return jsonify({
+    result = {
         "hazard_label": label,
         "color": HAZARD_COLORS[label],
         "probabilities": {
@@ -74,7 +82,10 @@ def predict():
             for cls, p in zip(_le.classes_, proba)
         },
         "input": {f: body[f] for f in _features},
-    })
+    }
+    logger.info("predict | label=%s confidence=%.3f mag=%.1f",
+                label, float(max(proba)), float(body.get("magnitude", 0)))
+    return jsonify(result)
 
 
 # ── Recent earthquakes (USGS proxy) ──────────────────────────────────────────
@@ -128,6 +139,7 @@ def recent():
             "url": props.get("url", ""),
         })
 
+    logger.info("recent | hours=%d min_mag=%.1f returned=%d", hours, min_mag, len(earthquakes))
     return jsonify({
         "count": len(earthquakes),
         "hours": hours,
