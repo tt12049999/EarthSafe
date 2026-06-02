@@ -23,6 +23,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flasgger import Swagger
 
 MODEL_DIR = Path(__file__).parents[2] / "models"
 
@@ -35,6 +36,15 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
+Swagger(app, template={
+    "info": {
+        "title": "EarthSafe API",
+        "description": "Real-time earthquake hazard prediction API. POST seismic parameters, get Low/Moderate/High hazard classification.",
+        "version": "1.0.0",
+    },
+    "host": "earthsafe-api-589990931603.us-central1.run.app",
+    "schemes": ["https"],
+})
 
 # Load model artifacts once at startup
 _model = joblib.load(MODEL_DIR / "xgb_model.pkl")
@@ -49,6 +59,13 @@ USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 @app.get("/health")
 def health():
+    """
+    Liveness check.
+    ---
+    responses:
+      200:
+        description: API is running
+    """
     return jsonify({"status": "ok", "model": "xgboost", "features": _features})
 
 
@@ -56,6 +73,28 @@ def health():
 
 @app.post("/predict")
 def predict():
+    """
+    Predict earthquake hazard level.
+    ---
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [magnitude, depth, gap, rms, location_type]
+          properties:
+            magnitude: {type: number, example: 5.2}
+            depth:     {type: number, example: 30}
+            gap:       {type: number, example: 120}
+            rms:       {type: number, example: 0.5}
+            location_type: {type: integer, example: 0, description: "0=Inland, 1=Offshore"}
+    responses:
+      200:
+        description: Hazard prediction result
+      400:
+        description: Missing or invalid fields
+    """
     body = request.get_json(silent=True)
     if not body:
         return jsonify({"error": "JSON body required"}), 400
@@ -92,6 +131,26 @@ def predict():
 
 @app.get("/recent")
 def recent():
+    """
+    Recent earthquakes from USGS (last 24h, M≥2.5).
+    ---
+    parameters:
+      - name: hours
+        in: query
+        type: integer
+        default: 24
+      - name: minmagnitude
+        in: query
+        type: number
+        default: 2.5
+      - name: limit
+        in: query
+        type: integer
+        default: 100
+    responses:
+      200:
+        description: List of recent earthquakes with hazard labels
+    """
     hours = int(request.args.get("hours", 24))
     min_mag = float(request.args.get("minmagnitude", 2.5))
     limit = int(request.args.get("limit", 100))

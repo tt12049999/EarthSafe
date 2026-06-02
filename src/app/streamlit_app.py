@@ -9,22 +9,17 @@ Run:
     streamlit run src/app/streamlit_app.py
 """
 
-import time
-import joblib
 import requests
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 import streamlit as st
-from pathlib import Path
 from datetime import datetime, timezone
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
+# ── API & constants ───────────────────────────────────────────────────────────
 
-ROOT = Path(__file__).parents[2]
-MODEL_PATH = ROOT / "models" / "xgb_model.pkl"
-ENCODER_PATH = ROOT / "models" / "label_encoder.pkl"
+API_URL = "https://earthsafe-api-589990931603.us-central1.run.app"
+USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
+
 FEATURES = ["magnitude", "depth", "gap", "rms", "location_type"]
 LABEL_ORDER = ["Low", "Moderate", "High"]
 
@@ -35,8 +30,6 @@ HAZARD_BG = {
     "Moderate": "rgba(243,156,18,0.15)",
     "High": "rgba(231,76,60,0.15)",
 }
-
-USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 # ── Page config ───────────────────────────────────────────────────────────────
 
@@ -64,15 +57,6 @@ st.markdown("""
     section[data-testid="stSidebar"] { min-width: 320px; }
 </style>
 """, unsafe_allow_html=True)
-
-
-# ── Model loader ──────────────────────────────────────────────────────────────
-
-@st.cache_resource
-def load_model():
-    model = joblib.load(MODEL_PATH)
-    le = joblib.load(ENCODER_PATH)
-    return model, le
 
 
 # ── USGS data fetcher ─────────────────────────────────────────────────────────
@@ -120,13 +104,21 @@ def fetch_recent(hours: int = 24, min_mag: float = 2.5, limit: int = 200) -> pd.
     return df
 
 
-def predict(model, le, magnitude, depth, gap, rms, location_type):
-    X = np.array([[magnitude, depth, gap, rms, location_type]])
-    proba = model.predict_proba(X)[0]
-    idx = int(np.argmax(proba))
-    label = le.inverse_transform([idx])[0]
-    probs = {cls: float(p) for cls, p in zip(le.classes_, proba)}
-    return label, probs
+def predict(magnitude, depth, gap, rms, location_type):
+    payload = {
+        "magnitude": magnitude, "depth": depth,
+        "gap": gap, "rms": rms, "location_type": location_type,
+    }
+    try:
+        resp = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        label = data["hazard_label"]
+        probs = data["probabilities"]
+        return label, probs
+    except Exception as e:
+        st.error(f"API error: {e}")
+        return "Low", {"Low": 1.0, "Moderate": 0.0, "High": 0.0}
 
 
 # ── Sidebar navigation ────────────────────────────────────────────────────────
@@ -142,8 +134,6 @@ st.sidebar.divider()
 # ══════════════════════════════════════════════════════════════════════════════
 
 if page == "Live Prediction":
-    model, le = load_model()
-
     st.title("⚡ Live Hazard Prediction")
     st.caption("Adjust the sliders — prediction updates instantly.")
 
@@ -171,7 +161,7 @@ if page == "Live Prediction":
         horizontal=True,
     )
 
-    label, probs = predict(model, le, magnitude, depth, gap, rms, location_type)
+    label, probs = predict(magnitude, depth, gap, rms, location_type)
     color = HAZARD_COLOR[label]
     emoji = HAZARD_EMOJI[label]
     bg = HAZARD_BG[label]
