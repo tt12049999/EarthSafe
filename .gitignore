@@ -41,3 +41,11 @@ package-lock.json
 
 # Docker
 .docker/
+
+# Presentation non-deliverables
+presentation/*.md
+presentation/*.docx
+presentation/*.pdf
+presentation/.~*
+*.bak
+package.json
