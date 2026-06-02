@@ -3,7 +3,8 @@
 Real-time earthquake hazard prediction using USGS seismic data.
 
 **Live App:** [earthsafe-eu9o2sytymwqnls48ppjg7.streamlit.app](https://earthsafe-eu9o2sytymwqnls48ppjg7.streamlit.app)  
-**API:** Flask REST API — `POST /predict`, `GET /recent`, `GET /health`  
+**API:** [earthsafe-api-589990931603.us-central1.run.app](https://earthsafe-api-589990931603.us-central1.run.app) — `POST /predict`, `GET /recent`, `GET /health`  
+**API Docs:** [/apidocs](https://earthsafe-api-589990931603.us-central1.run.app/apidocs)  
 **GitHub:** [github.com/tt12049999/EarthSafe](https://github.com/tt12049999/EarthSafe)
 
 ---
@@ -178,9 +179,12 @@ AI assistants dramatically reduce time on boilerplate (Docker, CORS, API validat
 
 ## Deployment Notes
 
-- **Streamlit app** hosted on [Streamlit Community Cloud](https://streamlit.io/cloud) (free tier)
-- **Flask API** — for local/Docker use; Cloud Run deploy script available in `deploy/deploy.sh`
-- Services should remain live through **June 9, 2026**
+- **Streamlit app** hosted on [Streamlit Community Cloud](https://streamlit.io/cloud) (free tier)  
+  URL: `https://earthsafe-eu9o2sytymwqnls48ppjg7.streamlit.app`
+- **Flask API** deployed on [Google Cloud Run](https://cloud.google.com/run) (project: stat418-iris-api, region: us-central1)  
+  URL: `https://earthsafe-api-589990931603.us-central1.run.app`  
+  Docs: `https://earthsafe-api-589990931603.us-central1.run.app/apidocs`
+- Services remain live through **June 9, 2026**
 
 ---
 
